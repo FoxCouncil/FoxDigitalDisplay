@@ -11,12 +11,21 @@ using System.Windows.Forms;
 namespace com.FoxCouncil.FoxDigitalDisplay
 {
     [ToolboxItem(true)]
-    [DesignerAttribute(typeof(FoxDigitalDisplayDesigner))]
+    [Designer(typeof(FoxDigitalDisplayDesigner))]
     public partial class FoxDigitalDisplay : Control
     {
         #region Constants
-        private const int DEFAULT_CHAR_WIDTH = 10;
-        private const int DEFAULT_CHAR_HEIGHT = 14;
+        private const int DEFAULT_CHAR_WIDTH = 5;
+        private const int DEFAULT_CHAR_HEIGHT = 7;
+        #endregion
+
+        #region Private Member Variables
+        bool m_isChangingDepth = false;
+
+        int m_drawDepth = 2;
+        int m_displayWidth = 15;
+        int m_displayHeight = 1;
+        int m_displayPixelPadding = 1;
         #endregion
 
         #region Public Properties
@@ -79,6 +88,35 @@ namespace com.FoxCouncil.FoxDigitalDisplay
                 m_isChangingDepth = false;
             }
         }
+
+        [Category("Display Properties")]
+        [Description("How far apart the pixels are.")]
+        public int PixelPadding
+        {
+            get
+            {
+                return m_displayPixelPadding;
+            }
+
+            set
+            {
+                if (value < 1)
+                {
+                    m_displayPixelPadding = 1;
+                }
+                else
+                {
+                    m_displayPixelPadding = value;
+                }
+
+                m_isChangingDepth = true;
+
+                DisplayWidth = m_displayWidth;
+                DisplayHeight = m_displayHeight;
+
+                m_isChangingDepth = false;
+            }
+        }
         #endregion
 
         #region Control Subclass Overrides
@@ -97,14 +135,6 @@ namespace com.FoxCouncil.FoxDigitalDisplay
         }
         #endregion
 
-        #region Private Member Variables
-        bool m_isChangingDepth = false;
-
-        int m_drawDepth = 2;
-        int m_displayWidth = 15;
-        int m_displayHeight = 1;
-        #endregion
-
         #region Constructor
         public FoxDigitalDisplay()
         {
@@ -117,12 +147,12 @@ namespace com.FoxCouncil.FoxDigitalDisplay
         #region Private Methods
         private int GetBaseHeight()
         {
-            return m_drawDepth * DEFAULT_CHAR_HEIGHT;
+            return m_drawDepth * DEFAULT_CHAR_HEIGHT + m_displayPixelPadding * DEFAULT_CHAR_HEIGHT;
         }
 
         private int GetBaseWidth()
         {
-            return m_drawDepth * DEFAULT_CHAR_WIDTH;
+            return m_drawDepth * DEFAULT_CHAR_WIDTH + m_displayPixelPadding * DEFAULT_CHAR_WIDTH;
         }
         #endregion
 
@@ -197,9 +227,8 @@ namespace com.FoxCouncil.FoxDigitalDisplay
 
             Size a_pixelSize = new Size(m_drawDepth, m_drawDepth);
 
-            // This includes a magic number for padding; could be changed...
-            // but naw...
-            int a_totalPixelSize = m_drawDepth * 2;
+            // Alright fine, changed...
+            int a_totalPixelSize = m_drawDepth + m_displayPixelPadding;
 
             int a_row = 0;
             int a_col = 0;
