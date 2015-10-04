@@ -26,6 +26,14 @@ namespace com.FoxCouncil.FoxDigitalDisplay
         int m_displayWidth = 15;
         int m_displayHeight = 1;
         int m_displayPixelPadding = 1;
+
+        int m_displayStringOffset = 0;
+
+        Color m_displayForeColor = Color.Black;
+        Color m_displayBackColor = Color.LightGray;
+
+        Timer m_displayAnimationTimer;
+        bool m_displayAnimationDirectionLeft = true;
         #endregion
 
         #region Public Properties
@@ -42,6 +50,7 @@ namespace com.FoxCouncil.FoxDigitalDisplay
             {
                 m_displayWidth = value;
                 Width = GetBaseWidth() * m_displayWidth;
+                Invalidate();
             }
         }
 
@@ -58,6 +67,7 @@ namespace com.FoxCouncil.FoxDigitalDisplay
             {
                 m_displayHeight = value;
                 Height = GetBaseHeight() * m_displayHeight;
+                Invalidate();
             }
         }
 
@@ -80,12 +90,15 @@ namespace com.FoxCouncil.FoxDigitalDisplay
                 {
                     m_drawDepth = value;
                 }
+
                 m_isChangingDepth = true;
 
                 DisplayWidth = m_displayWidth;
                 DisplayHeight = m_displayHeight;
 
                 m_isChangingDepth = false;
+
+                Invalidate();
             }
         }
 
@@ -115,6 +128,40 @@ namespace com.FoxCouncil.FoxDigitalDisplay
                 DisplayHeight = m_displayHeight;
 
                 m_isChangingDepth = false;
+
+                Invalidate();
+            }
+        }
+
+        [Category("Display Properties")]
+        [Description("What color the ON pixels are.")]
+        public Color DisplayForeColor
+        {
+            get
+            {
+                return m_displayForeColor;
+            }
+
+            set
+            {
+                m_displayForeColor = value;
+                Invalidate();
+            }
+        }
+
+        [Category("Display Properties")]
+        [Description("What color the OFF pixels are.")]
+        public Color DisplayBackColor
+        {
+            get
+            {
+                return m_displayBackColor;
+            }
+
+            set
+            {
+                m_displayBackColor = value;
+                Invalidate();
             }
         }
         #endregion
@@ -133,12 +180,45 @@ namespace com.FoxCouncil.FoxDigitalDisplay
                 base.AutoSize = true;
             }
         }
+
+        public override string Text
+        {
+            get
+            {
+                return base.Text;
+            }
+
+            set
+            {
+                base.Text = value;
+
+                m_displayStringOffset = 0;
+
+                if (System.Diagnostics.Process.GetCurrentProcess().ProcessName != "devenv")
+                {
+                    if (value.Length <= DisplayWidth)
+                    {
+                        m_displayAnimationTimer.Stop();
+                    }
+                    else
+                    {
+                        m_displayAnimationTimer.Start();
+                    }
+                }
+
+                Invalidate();
+            }
+        }
         #endregion
 
         #region Constructor
         public FoxDigitalDisplay()
         {
             InitializeComponent();
+
+            m_displayAnimationTimer = new Timer();
+            m_displayAnimationTimer.Interval = 1000;
+            m_displayAnimationTimer.Tick += DisplayAnimationTimer_Tick;
 
             DoubleBuffered = true;
         }
@@ -147,12 +227,91 @@ namespace com.FoxCouncil.FoxDigitalDisplay
         #region Private Methods
         private int GetBaseHeight()
         {
-            return m_drawDepth * DEFAULT_CHAR_HEIGHT + m_displayPixelPadding * DEFAULT_CHAR_HEIGHT;
+            return (m_drawDepth * DEFAULT_CHAR_HEIGHT + m_displayPixelPadding * DEFAULT_CHAR_HEIGHT) + m_displayPixelPadding;
         }
 
         private int GetBaseWidth()
         {
-            return m_drawDepth * DEFAULT_CHAR_WIDTH + m_displayPixelPadding * DEFAULT_CHAR_WIDTH;
+            return (m_drawDepth * DEFAULT_CHAR_WIDTH + m_displayPixelPadding * DEFAULT_CHAR_WIDTH) + m_displayPixelPadding;
+        }
+
+        private void DisplayAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            if (m_displayAnimationDirectionLeft)
+            {
+                if (m_displayStringOffset >= Text.Length - DisplayWidth)
+                {
+                    m_displayAnimationDirectionLeft = false;
+                }
+                else
+                {
+                    m_displayStringOffset++;
+                }
+            }
+            else
+            {
+                if (m_displayStringOffset == 0)
+                {
+                    m_displayAnimationDirectionLeft = true;
+                }
+                else
+                {
+                    m_displayStringOffset--;
+                }
+            }            
+
+            Invalidate();
+        }
+
+        private void DrawCharacter(Graphics c_graphicsHandle, int c_xOffset, int c_yOffset, int c_charIndex)
+        {
+            char a_char = char.MinValue;
+            bool[] a_font = null;
+
+            if (c_charIndex < Text.Length)
+            {
+                a_char = Text[c_charIndex + m_displayStringOffset];
+
+                if (FoxDigitalDisplayFont.Regular.ContainsKey(a_char))
+                {
+                    a_font = FoxDigitalDisplayFont.Regular[a_char];
+                }
+            }
+
+            Pen a_pen = new Pen(ForeColor);
+            SolidBrush a_brushOn = new SolidBrush(DisplayForeColor);
+            SolidBrush a_brushOff = new SolidBrush(DisplayBackColor);
+
+            Size a_pixelSize = new Size(m_drawDepth, m_drawDepth);
+
+            // Alright fine, changed...
+            int a_totalPixelSize = m_drawDepth + m_displayPixelPadding;
+
+            int a_row = 0;
+            int a_col = 0;
+
+            for (int x = 0; x < 35; x++)
+            {
+                if (a_col == 5)
+                {
+                    a_col = 0;
+                    a_row++;
+                }
+
+                Point a_pixelPoint = new Point(c_xOffset + a_col * a_totalPixelSize, c_yOffset + a_row * a_totalPixelSize);
+                Rectangle a_pixelRect = new Rectangle(a_pixelPoint, a_pixelSize);
+
+                SolidBrush a_paintingBrush = a_brushOff;
+
+                if (a_font != null && a_font[x])
+                {
+                    a_paintingBrush = a_brushOn;
+                }
+
+                c_graphicsHandle.FillRectangle(a_paintingBrush, a_pixelRect);
+
+                a_col++;
+            }
         }
         #endregion
 
@@ -199,59 +358,6 @@ namespace com.FoxCouncil.FoxDigitalDisplay
                 }
 
                 DrawCharacter(pe.Graphics, a_col * GetBaseWidth(), a_row * GetBaseHeight(), x);
-
-                a_col++;
-            }
-            
-        }
-
-        private void DrawCharacter(Graphics c_graphicsHandle, int c_xOffset, int c_yOffset, int c_charIndex)
-        {
-            char a_char = char.MinValue;
-            bool[] a_font = null;
-
-            if (c_charIndex < Text.Length)
-            {
-                a_char = Text[c_charIndex];
-
-                if (FoxDigitalDisplayFont.Regular.ContainsKey(a_char))
-                {
-                    a_font = FoxDigitalDisplayFont.Regular[a_char];
-                }
-
-            }
-
-            Pen a_pen = new Pen(ForeColor);
-            SolidBrush a_brush = new SolidBrush(ForeColor);
-            SolidBrush a_lightBrush = new SolidBrush(ControlPaint.LightLight(ControlPaint.LightLight(ControlPaint.LightLight(ForeColor))));
-
-            Size a_pixelSize = new Size(m_drawDepth, m_drawDepth);
-
-            // Alright fine, changed...
-            int a_totalPixelSize = m_drawDepth + m_displayPixelPadding;
-
-            int a_row = 0;
-            int a_col = 0;
-
-            for (int x = 0; x < 35; x++)
-            {
-                if (a_col == 5)
-                {
-                    a_col = 0;
-                    a_row++;
-                }
-
-                Point a_pixelPoint = new Point(c_xOffset + a_col * a_totalPixelSize, c_yOffset + a_row * a_totalPixelSize);
-                Rectangle a_pixelRect = new Rectangle(a_pixelPoint, a_pixelSize);
-
-                SolidBrush a_paintingBrush = a_lightBrush;
-
-                if (a_font != null && a_font[x])
-                {
-                    a_paintingBrush = a_brush;
-                }                
-
-                c_graphicsHandle.FillRectangle(a_paintingBrush, a_pixelRect);
 
                 a_col++;
             }

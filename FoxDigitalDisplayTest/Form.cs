@@ -16,5 +16,10 @@ namespace FoxDigitalDisplayTest
         {
             InitializeComponent();
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            foxDigitalDisplay4.Text = DateTime.Now.ToString("G");
+        }
     }
 }

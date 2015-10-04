@@ -117,4 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="foxDigitalDisplay2.Text" xml:space="preserve">
+    <value>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sagittis arcu sapien, ut bibendum massa iaculis vel. Pellentesque quis libero felis. Ut finibus interdum sodales. Interdum et malesuada fames ac ante ipsum primis in faucibus. Phasellus tempus sem vel molestie dictum. Integer tempus neque a luctus tempus. Integer ornare aliquam commodo.</value>
+  </data>
+  <data name="foxDigitalDisplay3.Text" xml:space="preserve">
+    <value>Nam eget cursus libero, a convallis arcu. Vivamus diam mi, pellentesque vel aliquet sed, eleifend a eros. Etiam velit tortor, pellentesque id varius quis, consequat sit amet ipsum. Suspendisse potenti. Mauris ornare porta laoreet. Sed dictum dapibus justo, non ultrices leo semper eget. Nulla venenatis magna at lorem congue eleifend. Mauris lacinia blandit mi, a fringilla dui tincidunt in. Suspendisse dictum elit blandit enim rutrum faucibus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean convallis posuere urna vitae consequat. Nullam molestie ipsum sit amet sapien vehicula pharetra. Aenean risus ante, vestibulum vitae urna eu, egestas mollis ligula. Proin non enim non risus accumsan dignissim aliquet ac eros. Phasellus rhoncus justo sapien, eget pretium risus feugiat vitae.</value>
+  </data>
+  <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
 </root>
