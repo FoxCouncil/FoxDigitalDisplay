@@ -190,6 +190,11 @@ namespace com.FoxCouncil.FoxDigitalDisplay
 
             set
             {
+                if (base.Text == value)
+                {
+                    return;
+                }
+
                 base.Text = value;
 
                 m_displayStringOffset = 0;
